@@ -50,6 +50,21 @@ Intel/Apple Silicon. После каждого push и pull request они пр�
 запуску workflow как artifacts. Пуш тега вида `v0.1.0` дополнительно создаёт
 GitHub Release с готовыми установщиками.
 
+## Иконка и macOS
+
+Исходник иконки — `src-tauri/icons/icon.svg`. Его нельзя напрямую передавать
+в генератор Tauri: favicon имеет маленький внутренний canvas, из-за чего
+получалась крошечная картинка на белом квадрате. Скрипт
+`scripts/regenerate_icons.py` сначала вырезает прозрачные поля, масштабирует
+изображение с сохранением pixel-art и создаёт прозрачную PNG-основу; затем
+`npm run tauri -- icon src-tauri/icons/icon.png` обновляет `.icns`, `.ico` и
+все PNG для Windows, Linux и macOS.
+
+macOS-сборки используют ad-hoc подпись, поэтому на Apple Silicon больше не
+должны помечаться как «повреждённые» после скачивания. Для релиза без любого
+предупреждения Gatekeeper нужна платная учётная запись Apple Developer:
+Developer ID Application certificate и notarization через secrets GitHub.
+
 ## Важное ограничение
 
 Нативный shell может разрешить нативные возможности, но не может гарантировать
