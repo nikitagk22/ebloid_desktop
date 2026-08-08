@@ -1,0 +1,15 @@
+[package]
+name = "ebloid-desktop"
+version = "0.1.0"
+description = "Native WebView desktop client for eblo.id"
+authors = ["Ebloid"]
+edition = "2021"
+rust-version = "1.77"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2.11.5", features = [] }
+rfd = "0.15"
+url = "2"
