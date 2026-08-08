@@ -131,7 +131,7 @@ fn main() {
             }
             app.deep_link().on_open_url(move |event| {
                 for url in event.urls() {
-                    open_deep_link(&app_handle, url);
+                    open_deep_link(&app_handle, &url);
                 }
             });
 
