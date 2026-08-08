@@ -35,6 +35,10 @@ fn main() {
                 .inner_size(1440.0, 920.0)
                 .min_inner_size(900.0, 650.0)
                 .resizable(true)
+                // A normal, persistent profile is intentional: WebView keeps
+                // HTTP cache, cookies, IndexedDB and localStorage between runs.
+                // Cache-control headers from eblo.id remain authoritative.
+                .incognito(false)
                 .on_navigation(is_safe_navigation)
                 // OAuth providers often use `window.open`. Tauri's default
                 // implementation creates a native child window while retaining
