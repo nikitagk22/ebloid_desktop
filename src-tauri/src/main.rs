@@ -91,6 +91,18 @@ fn main() {
                 // HTTP cache, cookies, IndexedDB and localStorage between runs.
                 // Cache-control headers from eblo.id remain authoritative.
                 .incognito(false)
+                // The website uses the browser clipboard for editors and chat.
+                // This enables it on Windows and Linux (WKWebView enables it
+                // by default on macOS).
+                .enable_clipboard_access()
+                // Tauri's Windows drag handler replaces WebView2's native
+                // HTML5 handler. Disable it so dropping a file into eblo.id
+                // works exactly like it does in a browser upload control.
+                .disable_drag_drop_handler()
+                // Keep the browser-standard Ctrl/Cmd +/- and Ctrl/Cmd+0
+                // controls. Rendering itself remains compositor-vsynced by
+                // WebView2/WKWebView/WebKitGTK, including high-refresh panels.
+                .zoom_hotkeys_enabled(true)
                 .on_navigation(is_safe_navigation)
                 // OAuth providers often use `window.open`. Tauri's default
                 // implementation creates a native child window while retaining
