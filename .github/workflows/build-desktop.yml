@@ -53,7 +53,8 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
 
       - name: Install JavaScript dependencies
-        run: npm install
+        # package-lock.json is committed: CI must install the exact audited tree.
+        run: npm ci
 
       - name: Build native installer
         uses: tauri-apps/tauri-action@v0
