@@ -2,8 +2,9 @@
 
 use tauri::{
     webview::{DownloadEvent, NewWindowResponse},
-    Manager, WebviewUrl, WebviewWindowBuilder,
+    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder,
 };
+use tauri_plugin_deep_link::DeepLinkExt;
 use url::Url;
 
 const HOME: &str = "https://eblo.id/";
@@ -24,8 +25,59 @@ fn suggested_filename(url: &Url) -> String {
         .to_owned()
 }
 
+fn is_ebloid_url(url: &Url) -> bool {
+    matches!(url.scheme(), "https" | "http")
+        && matches!(url.host_str(), Some("eblo.id") | Some("www.eblo.id"))
+}
+
+/// Converts only the app's own custom links to an eblo.id page. Accepting an
+/// arbitrary destination here would let a malicious `ebloid://` URL navigate
+/// an already authenticated WebView to a phishing site.
+fn destination_from_deep_link(url: &Url) -> Option<Url> {
+    if url.scheme() != "ebloid" {
+        return None;
+    }
+
+    let destination = if url.host_str() == Some("open") {
+        url.query_pairs()
+            .find(|(key, _)| key == "url")
+            .and_then(|(_, value)| Url::parse(&value).ok())
+    } else {
+        let host_path = url.host_str().unwrap_or_default();
+        let query = url.query().map(|value| format!("?{value}")).unwrap_or_default();
+        Url::parse(&format!("{HOME}{host_path}{}{}", url.path(), query)).ok()
+    };
+
+    destination.filter(is_ebloid_url)
+}
+
+fn focus_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
+}
+
+fn open_deep_link(app: &AppHandle, url: &Url) {
+    let Some(destination) = destination_from_deep_link(url) else {
+        return;
+    };
+
+    focus_main_window(app);
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.navigate(destination);
+    }
+}
+
 fn main() {
     tauri::Builder::default()
+        // A second launch focuses the existing window instead of creating a
+        // separate WebView profile and losing the deep-link destination.
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            focus_main_window(app);
+        }))
+        .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
             let app_handle = app.handle().clone();
             let home = Url::parse(HOME).expect("the Ebloid URL is valid");
@@ -70,6 +122,18 @@ fn main() {
                     _ => true,
                 })
                 .build()?;
+
+            let app_handle = app.handle().clone();
+            if let Some(urls) = app.deep_link().get_current()? {
+                for url in urls {
+                    open_deep_link(&app_handle, &url);
+                }
+            }
+            app.deep_link().on_open_url(move |event| {
+                for url in event.urls() {
+                    open_deep_link(&app_handle, url);
+                }
+            });
 
             Ok(())
         })
