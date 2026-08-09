@@ -1,5 +1,14 @@
 # Ebloid Desktop
 
+[![Build](https://img.shields.io/github/actions/workflow/status/nikitagk22/ebloid_desktop/build-desktop.yml?branch=main&label=Build&logo=github)](https://github.com/nikitagk22/ebloid_desktop/actions)
+[![Release](https://img.shields.io/github/v/release/nikitagk22/ebloid_desktop?label=version&color=007ec6)](https://github.com/nikitagk22/ebloid_desktop/releases)
+[![License](https://img.shields.io/github/license/nikitagk22/ebloid_desktop?label=license&color=4c1)](LICENSE)
+[![Tauri](https://img.shields.io/badge/Tauri-2.0-blue?logo=tauri&logoColor=white)](https://tauri.app/)
+[![Stars](https://img.shields.io/github/stars/nikitagk22/ebloid_desktop?style=flat&logo=github)](https://github.com/nikitagk22/ebloid_desktop/stargazers)
+[![Forks](https://img.shields.io/github/forks/nikitagk22/ebloid_desktop?style=flat&logo=github)](https://github.com/nikitagk22/ebloid_desktop/network/members)
+[![Last Commit](https://img.shields.io/github/last-commit/nikitagk22/ebloid_desktop)](https://github.com/nikitagk22/ebloid_desktop/commits/main)
+[![Issues](https://img.shields.io/github/issues/nikitagk22/ebloid_desktop)](https://github.com/nikitagk22/ebloid_desktop/issues)
+
 Ebloid Desktop — приложение для [eblo.id](https://eblo.id/) на Windows,
 macOS и Linux. Оно открывает сайт в системном WebView: интерфейс, лента,
 аккаунт и публикации остаются на eblo.id, а приложение добавляет удобство
