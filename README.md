@@ -1,14 +1,30 @@
-# Ebloid Desktop
+<p align="center">
+  <img src="src-tauri/icons/icon.svg" width="128" height="128" alt="Ebloid Logo" />
+</p>
 
-[![Release](https://img.shields.io/github/v/release/nikitagk22/ebloid_desktop?label=version&color=007ec6)](https://github.com/nikitagk22/ebloid_desktop/releases)
-[![License](https://img.shields.io/github/license/nikitagk22/ebloid_desktop?label=license&color=4c1)](LICENSE)
-[![Tauri](https://img.shields.io/badge/Tauri-2.0-blue?logo=tauri&logoColor=white)](https://tauri.app/)
-[![Stars](https://img.shields.io/github/stars/nikitagk22/ebloid_desktop?style=flat&logo=github)](https://github.com/nikitagk22/ebloid_desktop/stargazers)
-[![Forks](https://img.shields.io/github/forks/nikitagk22/ebloid_desktop?style=flat&logo=github)](https://github.com/nikitagk22/ebloid_desktop/network/members)
-[![Last Commit](https://img.shields.io/github/last-commit/nikitagk22/ebloid_desktop)](https://github.com/nikitagk22/ebloid_desktop/commits/main)
-[![Issues](https://img.shields.io/github/issues/nikitagk22/ebloid_desktop)](https://github.com/nikitagk22/ebloid_desktop/issues)
+<h1 align="center">Ebloid Desktop</h1>
 
-Ebloid Desktop — приложение для [eblo.id](https://eblo.id/) на Windows,
+<p align="center">
+  Неофициальный десктопный клиент eblo.id для Windows, macOS и Linux с одной кодовой базой и единым интерфейсом.
+</p>
+
+<p align="center">
+  <a href="https://eblo.id/"><b>Открыть eblo.id</b></a>
+</p>
+
+---
+
+<p align="center">
+  <a href="https://github.com/nikitagk22/ebloid_desktop/releases"><img src="https://img.shields.io/github/v/release/nikitagk22/ebloid_desktop?label=version&color=007ec6" alt="Release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/nikitagk22/ebloid_desktop?label=license&color=4c1" alt="License" /></a>
+  <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-2.0-blue?logo=tauri&logoColor=white" alt="Tauri" /></a>
+  <a href="https://github.com/nikitagk22/ebloid_desktop/stargazers"><img src="https://img.shields.io/github/stars/nikitagk22/ebloid_desktop?style=flat&logo=github" alt="Stars" /></a>
+  <a href="https://github.com/nikitagk22/ebloid_desktop/network/members"><img src="https://img.shields.io/github/forks/nikitagk22/ebloid_desktop?style=flat&logo=github" alt="Forks" /></a>
+  <a href="https://github.com/nikitagk22/ebloid_desktop/commits/main"><img src="https://img.shields.io/github/last-commit/nikitagk22/ebloid_desktop" alt="Last Commit" /></a>
+  <a href="https://github.com/nikitagk22/ebloid_desktop/issues"><img src="https://img.shields.io/github/issues/nikitagk22/ebloid_desktop" alt="Issues" /></a>
+</p>
+
+Ebloid Desktop — неофициальное приложение для [eblo.id](https://eblo.id/) на Windows,
 macOS и Linux. Оно открывает сайт в системном WebView: интерфейс, лента,
 аккаунт и публикации остаются на eblo.id, а приложение добавляет удобство
 обычного desktop-клиента — отдельное окно, загрузку файлов, скачивания и
