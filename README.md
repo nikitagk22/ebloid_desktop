@@ -1,6 +1,5 @@
 # Ebloid Desktop
 
-[![Build](https://img.shields.io/github/actions/workflow/status/nikitagk22/ebloid_desktop/build-desktop.yml?label=Build&logo=github)](https://github.com/nikitagk22/ebloid_desktop/actions)
 [![Release](https://img.shields.io/github/v/release/nikitagk22/ebloid_desktop?label=version&color=007ec6)](https://github.com/nikitagk22/ebloid_desktop/releases)
 [![License](https://img.shields.io/github/license/nikitagk22/ebloid_desktop?label=license&color=4c1)](LICENSE)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-blue?logo=tauri&logoColor=white)](https://tauri.app/)
