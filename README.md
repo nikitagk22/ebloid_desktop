@@ -93,3 +93,8 @@ Intel/Apple Silicon. Тег вида `vX.Y.Z` создаёт GitHub Release.
 после него выполните `npm run tauri -- icon src-tauri/icons/icon.png`, чтобы
 обновить `.icns`, `.ico` и PNG-наборы. Скрипту нужен отдельный tooling-venv с
 `Pillow` и `CairoSVG`.
+
+## Лицензия
+
+Этот проект распространяется под лицензией [GNU General Public License v3.0 (GPLv3)](LICENSE).
+

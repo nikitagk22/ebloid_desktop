@@ -4,6 +4,7 @@ version = "0.2.5"
 description = "Native WebView desktop client for eblo.id"
 authors = ["Ebloid"]
 edition = "2021"
+license = "GPL-3.0-or-later"
 rust-version = "1.77"
 
 [build-dependencies]
