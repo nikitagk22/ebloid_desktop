@@ -143,8 +143,12 @@ fn save_downloads(app: &AppHandle) -> Result<(), String> {
     write_json(config_path(app, "downloads.json"), &downloads)
 }
 
-fn is_safe_navigation(url: &Url) -> bool {
-    matches!(url.scheme(), "https" | "http" | "about" | "data" | "blob")
+fn is_embedded_navigation(url: &Url) -> bool {
+    is_ebloid_url(url) || matches!(url.scheme(), "about" | "data" | "blob")
+}
+
+fn is_system_link(url: &Url) -> bool {
+    matches!(url.scheme(), "https" | "http" | "mailto" | "tel")
 }
 
 fn is_downloadable_url(url: &Url) -> bool {
@@ -215,7 +219,10 @@ fn remote_filename(url: &Url, cookies: &str) -> Option<String> {
         .ok()?;
     let mut request = client
         .head(url.clone())
-        .header(USER_AGENT, "Ebloid Desktop/0.3")
+        .header(
+            USER_AGENT,
+            concat!("Ebloid Desktop/", env!("CARGO_PKG_VERSION")),
+        )
         .header(REFERER, HOME);
     if !cookies.is_empty() {
         request = request.header(COOKIE, cookies);
@@ -255,7 +262,9 @@ fn available_download_path(directory: &Path, file_name: &str) -> PathBuf {
 
 fn is_ebloid_url(url: &Url) -> bool {
     matches!(url.scheme(), "https" | "http")
-        && matches!(url.host_str(), Some("eblo.id") | Some("www.eblo.id"))
+        && url
+            .host_str()
+            .is_some_and(|host| host == "eblo.id" || host.ends_with(".eblo.id"))
 }
 
 fn destination_from_deep_link(url: &Url) -> Option<Url> {
@@ -561,7 +570,10 @@ fn download_worker(
         .map_err(|error| error.to_string())?;
     let mut request = client
         .get(url.clone())
-        .header(USER_AGENT, "Ebloid Desktop/0.3")
+        .header(
+            USER_AGENT,
+            concat!("Ebloid Desktop/", env!("CARGO_PKG_VERSION")),
+        )
         .header(REFERER, HOME);
     if !cookies.is_empty() {
         request = request.header(COOKIE, cookies);
@@ -716,8 +728,8 @@ fn logout_and_clear_cookies(app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 fn open_external(url: String) -> Result<(), String> {
     let parsed = Url::parse(&url).map_err(|error| error.to_string())?;
-    if !is_downloadable_url(&parsed) {
-        return Err("Можно открывать только HTTP(S)-ссылки".to_owned());
+    if !is_system_link(&parsed) {
+        return Err("Эту ссылку нельзя открыть во внешнем приложении".to_owned());
     }
     open_with_system(parsed.as_str())
 }
@@ -856,6 +868,8 @@ async fn install_update(app: AppHandle) -> Result<(), String> {
 fn create_main_window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
     let home = Url::parse(HOME).expect("the Ebloid URL is valid");
     let download_app = app.clone();
+    let navigation_app = app.clone();
+    let new_window_app = app.clone();
     let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(home))
         .title("Ebloid")
         .inner_size(1440.0, 920.0)
@@ -866,13 +880,27 @@ fn create_main_window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
         .disable_drag_drop_handler()
         .zoom_hotkeys_enabled(true)
         .initialization_script(CLIENT_SCRIPT)
-        .on_navigation(is_safe_navigation)
-        .on_new_window(|url, _features| {
-            if is_safe_navigation(&url) {
-                NewWindowResponse::Allow
-            } else {
-                NewWindowResponse::Deny
+        .on_navigation(move |url| {
+            if is_embedded_navigation(url) {
+                return true;
             }
+
+            if is_system_link(url) {
+                let _ = open_with_system(url.as_str());
+                focus_main_window(&navigation_app);
+            }
+            false
+        })
+        .on_new_window(move |url, _features| {
+            if is_ebloid_url(&url) {
+                if let Some(window) = new_window_app.get_webview_window("main") {
+                    let _ = window.navigate(url);
+                    let _ = window.set_focus();
+                }
+            } else if is_system_link(&url) {
+                let _ = open_with_system(url.as_str());
+            }
+            NewWindowResponse::Deny
         })
         .on_download(move |_webview, event| match event {
             DownloadEvent::Requested { url, .. } => {
@@ -1066,7 +1094,8 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::content_disposition_filename;
+    use super::{content_disposition_filename, is_ebloid_url, is_embedded_navigation};
+    use url::Url;
 
     #[test]
     fn reads_utf8_download_filename() {
@@ -1083,5 +1112,27 @@ mod tests {
             content_disposition_filename("attachment; filename=\"../../video.mp4\"").as_deref(),
             Some(".._.._video.mp4")
         );
+    }
+
+    #[test]
+    fn keeps_only_ebloid_pages_inside_the_webview() {
+        assert!(is_ebloid_url(&Url::parse("https://eblo.id/video").unwrap()));
+        assert!(is_ebloid_url(
+            &Url::parse("https://static.eblo.id/player").unwrap()
+        ));
+        assert!(!is_ebloid_url(
+            &Url::parse("https://youtube.com/watch?v=1").unwrap()
+        ));
+        assert!(!is_ebloid_url(
+            &Url::parse("https://eblo.id.example.com/").unwrap()
+        ));
+    }
+
+    #[test]
+    fn allows_internal_webview_schemes_without_opening_a_browser() {
+        assert!(is_embedded_navigation(&Url::parse("about:blank").unwrap()));
+        assert!(is_embedded_navigation(
+            &Url::parse("blob:https://eblo.id/9f0c").unwrap()
+        ));
     }
 }
