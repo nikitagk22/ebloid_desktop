@@ -418,7 +418,7 @@ fn open_settings_window(app: &AppHandle, section: Option<&str>) -> Result<(), St
         window.set_focus().map_err(|error| error.to_string())?;
         if let Some(section) = section {
             let script = format!(
-                "window.dispatchEvent(new CustomEvent('ebloid-section', {{detail:{}}}));",
+                "location.hash={0};window.dispatchEvent(new CustomEvent('ebloid-section', {{detail:{0}}}));",
                 serde_json::to_string(section).unwrap()
             );
             let _ = window.eval(script);

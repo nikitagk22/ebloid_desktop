@@ -168,7 +168,11 @@
         notes.textContent = "";
       }
     } catch (error) {
-      status.textContent = `Не удалось проверить: ${error}`;
+      const rawError = String(error);
+      const friendlyError = rawError.includes("valid release JSON")
+        ? "Релиз обновления ещё не опубликован. Попробуйте немного позже."
+        : rawError;
+      status.textContent = `Не удалось проверить: ${friendlyError}`;
       button.textContent = "Повторить";
     } finally {
       button.disabled = false;

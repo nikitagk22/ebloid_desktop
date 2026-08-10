@@ -81,7 +81,7 @@
         <div class="ebloid-client-menu-head"><strong>Ebloid Desktop</strong><span>Управление клиентом</span></div>
         <button type="button" role="menuitem" data-section="general">${icon("M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5ZM19 13.5v-3l-2-.7-.7-1.7.9-1.9-2.1-2.1-1.9.9-1.7-.7L10.5 2h-3l-.7 2-1.7.7-1.9-.9-2.1 2.1.9 1.9-.7 1.7-2 .7v3l2 .7.7 1.7-.9 1.9 2.1 2.1 1.9-.9 1.7.7.7 2h3l.7-2 1.7-.7 1.9.9 2.1-2.1-.9-1.9.7-1.7 2-.7Z")}<span>Настройки</span></button>
         <button type="button" role="menuitem" data-section="downloads">${icon("M12 3v12m0 0 4-4m-4 4-4-4M5 20h14")}<span>Загрузки</span><kbd>⌘⇧D</kbd></button>
-        <button type="button" role="menuitem" data-section="update">${icon("M20 7v5h-5M4 17v-5h5M6.1 8.2A7 7 0 0 1 18.6 7M17.9 15.8A7 7 0 0 1 5.4 17")}<span>Обновление</span></button>
+        <button type="button" role="menuitem" data-section="updates">${icon("M20 7v5h-5M4 17v-5h5M6.1 8.2A7 7 0 0 1 18.6 7M17.9 15.8A7 7 0 0 1 5.4 17")}<span>Обновление</span></button>
       </div>
     </div>`;
 
