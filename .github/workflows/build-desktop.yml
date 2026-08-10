@@ -56,8 +56,28 @@ jobs:
         # package-lock.json is committed: CI must install the exact audited tree.
         run: npm ci
 
-      - name: Build native installer
-        uses: tauri-apps/tauri-action@v0
+      - name: Build native installer for CI
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        uses: tauri-apps/tauri-action@v1
+        with:
+          args: --config src-tauri/tauri.ci.conf.json
+
+      - name: Build and publish signed release
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Ebloid ${{ github.ref_name }}"
+          generateReleaseNotes: true
+          releaseDraft: false
+          prerelease: false
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
+          updaterJsonPreferNsis: true
 
       - name: Upload ${{ matrix.name }} artifacts
         uses: actions/upload-artifact@v4
@@ -71,25 +91,4 @@ jobs:
             src-tauri/target/release/bundle/**/*.AppImage
             src-tauri/target/release/bundle/**/*.deb
             src-tauri/target/release/bundle/**/*.rpm
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download installers
-        uses: actions/download-artifact@v4
-        with:
-          pattern: ebloid-*
-          merge-multiple: true
-          path: release-assets
-
-      - name: Publish release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          files: release-assets/**
+            src-tauri/target/release/bundle/**/*.sig

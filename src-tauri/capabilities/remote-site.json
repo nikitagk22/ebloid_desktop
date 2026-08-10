@@ -1,0 +1,17 @@
+{
+  "$schema": "../gen/schemas/remote-schema.json",
+  "identifier": "remote-site",
+  "description": "Minimal IPC bridge for the trusted eblo.id page.",
+  "windows": ["main"],
+  "local": false,
+  "remote": {
+    "urls": ["https://eblo.id/*", "https://www.eblo.id/*"]
+  },
+  "permissions": [
+    "allow-client-event",
+    "allow-open-external",
+    "allow-download-url",
+    "allow-open-client-settings",
+    "allow-retry-connection"
+  ]
+}

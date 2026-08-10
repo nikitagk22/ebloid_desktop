@@ -1,14 +1,16 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Ebloid",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "identifier": "id.eblo.desktop",
   "build": {
     "frontendDist": "../ui"
   },
   "app": {
+    "withGlobalTauri": true,
     "security": {
-      "csp": null
+      "csp": null,
+      "capabilities": ["default", "remote-site"]
     },
     "windows": []
   },
@@ -17,10 +19,17 @@
       "desktop": {
         "schemes": ["ebloid"]
       }
+    },
+    "updater": {
+      "endpoints": [
+        "https://github.com/nikitagk22/ebloid_desktop/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDMzRkI0RjcxODM1NjkwQUIKUldTcmtGYURjVS83TTA3S2ZjNzVxTnkwSzAwTXpSMzZZOFJCOVM5R0tSSmtNOVRpK3E3UmtYTFoK"
     }
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Настройки Ebloid</title>
+    <style>
+      :root{color-scheme:dark;--bg:#1b1b1b;--surface:#232323;--surface-2:#292929;--line:#3a3a3a;--text:#f1f1f1;--muted:#999;--accent:#9fc236;--accent-dark:#1f2513;--danger:#e17070;--ease:cubic-bezier(.23,1,.32,1);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+      *{box-sizing:border-box}
+      html,body{min-height:100%;margin:0;background:var(--bg);color:var(--text)}
+      button,input{font:inherit}
+      button{color:inherit}
+      .shell{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
+      aside{position:sticky;top:0;height:100vh;padding:28px 18px;border-right:1px solid var(--line);background:#191919}
+      .brand{display:flex;align-items:center;gap:11px;padding:0 10px 26px;font-weight:800;letter-spacing:-.02em}
+      .brand img{width:34px;height:34px;object-fit:contain}
+      nav{display:grid;gap:4px}
+      .nav-button{display:flex;align-items:center;gap:11px;width:100%;min-height:42px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:#aaa;text-align:left;cursor:pointer;transition:color 140ms ease,background-color 140ms ease}
+      .nav-button:hover{color:#ddd;background:#222}
+      .nav-button[aria-selected="true"]{color:#f3f3f3;background:#292b25}
+      .nav-button[aria-selected="true"] svg{stroke:var(--accent)}
+      .nav-button:active{transform:scale(.98)}
+      .nav-button svg{width:19px;height:19px;fill:none;stroke:#777;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+      main{min-width:0;padding:clamp(34px,6vw,64px)}
+      .panel{display:none;max-width:780px;margin:0 auto}
+      .panel.active{display:block}
+      .eyebrow{margin:0 0 9px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.15em}
+      h1{margin:0;font-size:clamp(32px,5vw,48px);line-height:1;letter-spacing:-.04em}
+      .lead{max-width:580px;margin:16px 0 38px;color:var(--muted);line-height:1.55}
+      .group{border-top:1px solid var(--line)}
+      .setting{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:28px;min-height:76px;padding:16px 0;border-bottom:1px solid var(--line)}
+      .setting h2{margin:0 0 5px;font-size:15px;font-weight:650}
+      .setting p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+      .switch{position:relative;width:44px;height:25px;border:1px solid #4a4a4a;border-radius:99px;background:#303030;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease}
+      .switch::after{content:"";position:absolute;left:3px;top:3px;width:17px;height:17px;border-radius:50%;background:#9a9a9a;transition:transform 180ms var(--ease),background-color 160ms ease}
+      .switch[aria-checked="true"]{border-color:#88a92d;background:var(--accent-dark)}
+      .switch[aria-checked="true"]::after{transform:translateX(19px);background:var(--accent)}
+      .switch:active::after{width:19px}
+      .zoom{display:grid;grid-template-columns:42px 170px 42px;align-items:center;gap:10px;color:#aaa;font-size:13px}
+      input[type="range"]{accent-color:var(--accent);cursor:pointer}
+      .button{min-height:38px;padding:0 14px;border:1px solid #474747;border-radius:8px;background:#292929;color:#e6e6e6;font-weight:600;font-size:13px;cursor:pointer;transition:transform 140ms var(--ease),background-color 140ms ease,border-color 140ms ease}
+      .button:hover{border-color:#666;background:#303030}
+      .button:active{transform:scale(.97)}
+      .button.primary{border-color:#96b936;background:var(--accent);color:#121212}
+      .button.danger{border-color:#744;color:#f0abab;background:#2a2020}
+      .button:disabled{opacity:.55;cursor:wait}
+      .status{min-height:20px;margin:16px 0 0;color:var(--muted);font-size:13px}
+      .status.error{color:var(--danger)}
+      .downloads-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:28px 0 12px}
+      .downloads-summary{color:var(--muted);font-size:13px}
+      .download-list{border-top:1px solid var(--line)}
+      .download{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}
+      .download-name{overflow:hidden;margin-bottom:7px;font-size:14px;font-weight:650;text-overflow:ellipsis;white-space:nowrap}
+      .download-meta{display:flex;flex-wrap:wrap;gap:7px 14px;color:var(--muted);font-size:12px}
+      .download-progress{height:3px;margin-top:13px;overflow:hidden;border-radius:5px;background:#303030}
+      .download-progress span{display:block;height:100%;background:var(--accent);transition:width 140ms linear}
+      .download-actions{display:flex;align-items:center;gap:7px}
+      .empty{display:grid;min-height:260px;place-content:center;justify-items:center;border-top:1px solid var(--line);color:var(--muted);text-align:center}
+      .empty svg{width:42px;margin-bottom:18px;fill:none;stroke:#656565;stroke-width:1.4}
+      .update-box{margin-top:34px;padding:24px;border:1px solid var(--line);border-radius:14px;background:#202020}
+      .update-row{display:flex;align-items:center;justify-content:space-between;gap:22px}
+      .version{font-size:22px;font-weight:750;letter-spacing:-.03em}
+      .notes{margin:18px 0 0;color:var(--muted);font-size:13px;line-height:1.55;white-space:pre-wrap}
+      @media(max-width:760px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;padding:16px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding-bottom:14px}nav{grid-template-columns:repeat(3,1fr)}.nav-button{justify-content:center}.nav-button span{display:none}main{padding:30px 20px}.setting{gap:16px}.zoom{grid-template-columns:35px 110px 35px}.download{grid-template-columns:1fr}.download-actions{justify-content:flex-start}}
+      @media(prefers-reduced-motion:reduce){*{transition-duration:0ms!important}}
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside>
+        <div class="brand"><img src="https://eblo.id/static/image/favicon.svg" alt=""><span>Ebloid Desktop</span></div>
+        <nav aria-label="Разделы настроек">
+          <button class="nav-button" data-section="general" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z M19 13.5l1.2 1.4-2 3.4-1.9-.4a8 8 0 0 1-2.1 1.2l-.6 1.9H9.7l-.6-1.9A8 8 0 0 1 7 17.9l-1.9.4-2-3.4 1.2-1.4a8 8 0 0 1 0-2.5L3.1 9.6l2-3.4 1.9.4a8 8 0 0 1 2.1-1.2l.6-1.9h3.9l.6 1.9a8 8 0 0 1 2.1 1.2l1.9-.4 2 3.4L19 11a8 8 0 0 1 0 2.5Z"/></svg><span>Основные</span></button>
+          <button class="nav-button" data-section="downloads" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14"/></svg><span>Загрузки</span></button>
+          <button class="nav-button" data-section="updates" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 6M20 5v6h-6"/></svg><span>Обновление</span></button>
+        </nav>
+      </aside>
+      <main>
+        <section class="panel active" id="general">
+          <p class="eyebrow">КЛИЕНТ</p><h1>Настройки</h1><p class="lead">Только параметры оболочки. Настройки ленты и профиля по-прежнему принадлежат сайту eblo.id.</p>
+          <div class="group">
+            <div class="setting"><div><h2>Нативные уведомления</h2><p>Комментарии, ответы, оценки, видео и системные события.</p></div><button class="switch" id="notifications" role="switch" aria-checked="true" aria-label="Нативные уведомления"></button></div>
+            <div class="setting"><div><h2>Автозапуск</h2><p>Запускать Ebloid после входа в систему.</p></div><button class="switch" id="autostart" role="switch" aria-checked="false" aria-label="Автозапуск"></button></div>
+            <div class="setting"><div><h2>Сворачивать в трей</h2><p>Кнопка закрытия скрывает окно, а приложение продолжает работать.</p></div><button class="switch" id="minimizeToTray" role="switch" aria-checked="true" aria-label="Сворачивать в трей"></button></div>
+            <div class="setting"><div><h2>Масштаб интерфейса</h2><p>Меняет масштаб сайта без потери качества.</p></div><label class="zoom"><span>75%</span><input id="zoom" type="range" min="75" max="150" step="5" value="100" aria-label="Масштаб интерфейса"><output id="zoomValue">100%</output></label></div>
+            <div class="setting"><div><h2>Очистить кэш</h2><p>Удалит локальный кэш и хранилища сайта, но постарается сохранить текущую сессию.</p></div><button class="button" id="clearCache">Очистить</button></div>
+            <div class="setting"><div><h2>Выйти и удалить cookies</h2><p>Полностью завершит сеанс eblo.id только на этом компьютере.</p></div><button class="button danger" id="logout">Выйти</button></div>
+          </div>
+          <p class="status" id="generalStatus" role="status"></p>
+        </section>
+        <section class="panel" id="downloads">
+          <p class="eyebrow">ФАЙЛЫ</p><h1>Загрузки</h1><p class="lead">История хранится только на этом компьютере. Отмена удаляет незавершённый файл.</p>
+          <div class="downloads-toolbar"><span class="downloads-summary" id="downloadsSummary">Нет загрузок</span><button class="button" id="clearHistory">Очистить историю</button></div>
+          <div class="download-list" id="downloadList"></div>
+        </section>
+        <section class="panel" id="updates">
+          <p class="eyebrow">ВЕРСИЯ</p><h1>Обновление</h1><p class="lead">Клиент проверяет подписанные релизы GitHub. Установка выполняется внутри приложения.</p>
+          <div class="update-box"><div class="update-row"><div><div class="version" id="version">Проверяем…</div><div class="status" id="updateStatus">Подключаемся к GitHub Releases</div></div><button class="button primary" id="updateButton">Проверить</button></div><div class="notes" id="updateNotes"></div></div>
+          <div class="setting"><div><h2>Проверять при запуске</h2><p>Показывать уведомление, когда доступна новая версия.</p></div><button class="switch" id="checkUpdates" role="switch" aria-checked="true" aria-label="Проверять обновления при запуске"></button></div>
+        </section>
+      </main>
+    </div>
+    <script src="/settings.js"></script>
+  </body>
+</html>
