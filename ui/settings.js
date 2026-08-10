@@ -70,10 +70,31 @@
     zoomTimer = setTimeout(() => saveSettings(`Масштаб: ${value}%`).catch(() => {}), 140);
   });
 
+  const confirmationTimers = new WeakMap();
+  function confirmAction(button, confirmationText, statusText) {
+    if (button.dataset.confirming === "true") {
+      clearTimeout(confirmationTimers.get(button));
+      button.dataset.confirming = "false";
+      return true;
+    }
+
+    const originalText = button.textContent;
+    button.dataset.confirming = "true";
+    button.textContent = confirmationText;
+    showStatus(statusText);
+    confirmationTimers.set(button, setTimeout(() => {
+      button.dataset.confirming = "false";
+      button.textContent = originalText;
+      showStatus("");
+    }, 8000));
+    return false;
+  }
+
   document.getElementById("clearCache").addEventListener("click", async (event) => {
-    if (!confirm("Очистить кэш и локальные данные сайта? Страница будет перезагружена.")) return;
     const button = event.currentTarget;
+    if (!confirmAction(button, "Подтвердить очистку", "Нажмите ещё раз, чтобы очистить кэш")) return;
     button.disabled = true;
+    button.textContent = "Очищаем…";
     showStatus("Очищаем кэш…");
     try {
       await invoke("clear_cache");
@@ -82,19 +103,24 @@
       showStatus(String(error), true);
     } finally {
       button.disabled = false;
+      button.textContent = "Очистить";
     }
   });
 
   document.getElementById("logout").addEventListener("click", async (event) => {
-    if (!confirm("Выйти из аккаунта и удалить все cookies eblo.id на этом компьютере?")) return;
     const button = event.currentTarget;
+    if (!confirmAction(button, "Подтвердить выход", "Нажмите ещё раз, чтобы выйти и удалить cookies")) return;
     button.disabled = true;
+    button.textContent = "Выходим…";
+    showStatus("Удаляем cookies и локальные данные…");
     try {
       await invoke("logout_and_clear_cookies");
       showStatus("Вы вышли из аккаунта");
     } catch (error) {
       showStatus(String(error), true);
+    } finally {
       button.disabled = false;
+      button.textContent = "Выйти";
     }
   });
 

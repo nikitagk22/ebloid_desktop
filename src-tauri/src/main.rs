@@ -151,6 +151,78 @@ fn is_system_link(url: &Url) -> bool {
     matches!(url.scheme(), "https" | "http" | "mailto" | "tel")
 }
 
+fn is_auth_route(url: &Url) -> bool {
+    is_ebloid_url(url) && (url.path().starts_with("/login/") || url.path().starts_with("/auth/"))
+}
+
+fn is_google_auth_host(host: &str) -> bool {
+    const GOOGLE_REGIONAL_ZONES: &[&str] = &[
+        "by", "ru", "pl", "de", "fr", "es", "it", "nl", "be", "cz", "sk", "hu", "ro", "ua", "kz",
+        "jp", "cn", "kr", "co.uk", "com.br", "com.tr", "com.au", "co.in", "co.za", "se", "no",
+        "fi", "dk", "at", "ch", "pt", "gr", "il", "ae", "sa", "sg", "hk", "tw", "mx", "ar", "cl",
+        "co", "nz", "ie", "ca",
+    ];
+
+    host == "google.com"
+        || host.ends_with(".google.com")
+        || GOOGLE_REGIONAL_ZONES.iter().any(|zone| {
+            let suffix = format!(".google.{zone}");
+            host == format!("google.{zone}") || host.ends_with(&suffix)
+        })
+}
+
+fn is_auth_provider_url(url: &Url) -> bool {
+    if url.scheme() != "https" {
+        return false;
+    }
+
+    const PROVIDER_DOMAINS: &[&str] = &[
+        "twitch.tv",
+        "google.com",
+        "googleapis.com",
+        "googleusercontent.com",
+        "gstatic.com",
+        "telegram.org",
+        "apple.com",
+        "icloud.com",
+        "amazon.com",
+        "amazon.ca",
+        "amazon.co.jp",
+        "amazon.co.uk",
+        "amazon.com.au",
+        "amazon.de",
+        "amazon.es",
+        "amazon.fr",
+        "amazon.it",
+    ];
+
+    url.host_str().is_some_and(|host| {
+        is_google_auth_host(host)
+            || PROVIDER_DOMAINS
+                .iter()
+                .any(|domain| host == *domain || host.ends_with(&format!(".{domain}")))
+    })
+}
+
+fn is_auth_auxiliary_url(url: &Url) -> bool {
+    if url.scheme() != "https" {
+        return false;
+    }
+
+    const AUXILIARY_DOMAINS: &[&str] = &[
+        "amazon-adsystem.com",
+        "jtvnw.net",
+        "ttvnw.net",
+        "twitchcdn.net",
+    ];
+
+    url.host_str().is_some_and(|host| {
+        AUXILIARY_DOMAINS
+            .iter()
+            .any(|domain| host == *domain || host.ends_with(&format!(".{domain}")))
+    })
+}
+
 fn is_downloadable_url(url: &Url) -> bool {
     matches!(url.scheme(), "https" | "http")
 }
@@ -713,13 +785,9 @@ fn logout_and_clear_cookies(app: AppHandle) -> Result<(), String> {
     let window = app
         .get_webview_window("main")
         .ok_or_else(|| "Главное окно не найдено".to_owned())?;
-    let home = Url::parse(HOME).unwrap();
-    for cookie in window.cookies_for_url(home).unwrap_or_default() {
-        let _ = window.delete_cookie(cookie);
-    }
-    let _ = window.eval(
-        "try{localStorage.clear();sessionStorage.clear();caches.keys().then(k=>k.forEach(x=>caches.delete(x)))}catch(_){}",
-    );
+    window
+        .clear_all_browsing_data()
+        .map_err(|error| error.to_string())?;
     window
         .navigate(Url::parse(HOME).unwrap())
         .map_err(|error| error.to_string())
@@ -870,6 +938,9 @@ fn create_main_window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
     let download_app = app.clone();
     let navigation_app = app.clone();
     let new_window_app = app.clone();
+    let auth_in_progress = Arc::new(AtomicBool::new(false));
+    let navigation_auth = auth_in_progress.clone();
+    let new_window_auth = auth_in_progress;
     let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(home))
         .title("Ebloid")
         .inner_size(1440.0, 920.0)
@@ -881,8 +952,22 @@ fn create_main_window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
         .zoom_hotkeys_enabled(true)
         .initialization_script(CLIENT_SCRIPT)
         .on_navigation(move |url| {
+            if is_ebloid_url(url) {
+                navigation_auth.store(is_auth_route(url), Ordering::Relaxed);
+                return true;
+            }
+
             if is_embedded_navigation(url) {
                 return true;
+            }
+
+            if navigation_auth.load(Ordering::Relaxed) {
+                if is_auth_auxiliary_url(url) {
+                    return false;
+                }
+                if is_auth_provider_url(url) {
+                    return true;
+                }
             }
 
             if is_system_link(url) {
@@ -893,9 +978,19 @@ fn create_main_window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
         })
         .on_new_window(move |url, _features| {
             if is_ebloid_url(&url) {
+                new_window_auth.store(is_auth_route(&url), Ordering::Relaxed);
                 if let Some(window) = new_window_app.get_webview_window("main") {
                     let _ = window.navigate(url);
                     let _ = window.set_focus();
+                }
+            } else if new_window_auth.load(Ordering::Relaxed) {
+                if is_auth_provider_url(&url) {
+                    if let Some(window) = new_window_app.get_webview_window("main") {
+                        let _ = window.navigate(url);
+                        let _ = window.set_focus();
+                    }
+                } else if !is_auth_auxiliary_url(&url) && is_system_link(&url) {
+                    let _ = open_with_system(url.as_str());
                 }
             } else if is_system_link(&url) {
                 let _ = open_with_system(url.as_str());
@@ -1094,7 +1189,10 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::{content_disposition_filename, is_ebloid_url, is_embedded_navigation};
+    use super::{
+        content_disposition_filename, is_auth_auxiliary_url, is_auth_provider_url, is_auth_route,
+        is_ebloid_url, is_embedded_navigation,
+    };
     use url::Url;
 
     #[test]
@@ -1134,5 +1232,71 @@ mod tests {
         assert!(is_embedded_navigation(
             &Url::parse("blob:https://eblo.id/9f0c").unwrap()
         ));
+    }
+
+    #[test]
+    fn recognizes_only_ebloid_auth_routes() {
+        assert!(is_auth_route(
+            &Url::parse("https://eblo.id/login/twitch?next=/").unwrap()
+        ));
+        assert!(is_auth_route(
+            &Url::parse("https://eblo.id/auth/twitch/callback").unwrap()
+        ));
+        assert!(!is_auth_route(
+            &Url::parse("https://eblo.id/videos").unwrap()
+        ));
+    }
+
+    #[test]
+    fn recognizes_supported_https_auth_providers() {
+        assert!(is_auth_provider_url(
+            &Url::parse("https://id.twitch.tv/oauth2/authorize").unwrap()
+        ));
+        assert!(is_auth_provider_url(
+            &Url::parse("https://accounts.google.com/signin").unwrap()
+        ));
+        for host in [
+            "accounts.google.by",
+            "accounts.google.ru",
+            "accounts.google.pl",
+            "accounts.google.co.uk",
+            "accounts.google.com.br",
+        ] {
+            assert!(is_auth_provider_url(
+                &Url::parse(&format!("https://{host}/signin/oauth/legacy/consent")).unwrap()
+            ));
+        }
+        assert!(is_auth_provider_url(
+            &Url::parse("https://oauth.telegram.org/auth").unwrap()
+        ));
+        assert!(is_auth_provider_url(
+            &Url::parse("https://appleid.apple.com/auth/authorize").unwrap()
+        ));
+        assert!(is_auth_provider_url(
+            &Url::parse("https://na.account.amazon.com/ap/signin").unwrap()
+        ));
+        assert!(is_auth_provider_url(
+            &Url::parse("https://ssl.gstatic.com/accounts/static").unwrap()
+        ));
+        assert!(!is_auth_provider_url(
+            &Url::parse("https://youtube.com/watch?v=1").unwrap()
+        ));
+        assert!(!is_auth_provider_url(
+            &Url::parse("https://accounts.google.evil.example/signin").unwrap()
+        ));
+        assert!(!is_auth_provider_url(
+            &Url::parse("http://id.twitch.tv/oauth2/authorize").unwrap()
+        ));
+    }
+
+    #[test]
+    fn recognizes_auxiliary_auth_domains_without_treating_them_as_login_pages() {
+        let twitch_fingerprint = Url::parse("https://k.twitchcdn.net/fp").unwrap();
+        let amazon_identity_sync =
+            Url::parse("https://s.amazon-adsystem.com/iu3?d=twitch.tv").unwrap();
+        assert!(is_auth_auxiliary_url(&twitch_fingerprint));
+        assert!(is_auth_auxiliary_url(&amazon_identity_sync));
+        assert!(!is_auth_provider_url(&twitch_fingerprint));
+        assert!(!is_auth_provider_url(&amazon_identity_sync));
     }
 }
