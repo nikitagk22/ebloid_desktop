@@ -34,6 +34,8 @@ macOS и Linux. Оно открывает сайт в системном WebView
 
 Готовые файлы находятся на странице
 [Releases](https://github.com/nikitagk22/ebloid_desktop/releases).
+Описание изменений каждой версии находится в
+[CHANGELOG.md](CHANGELOG.md).
 
 Выберите только один файл для своей платформы:
 
